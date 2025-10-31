@@ -1,0 +1,36 @@
+name: Update run_status
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update-status:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set status to running: true
+        run: |
+          echo '{"running": true}' > run_status.json
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add run_status.json
+          git commit -m "Set running true"
+          git push
+
+      - name: Wait 20 seconds
+        run: sleep 20
+
+      - name: Set status to running: false
+        run: |
+          echo '{"running": false}' > run_status.json
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add run_status.json
+          git commit -m "Set running false"
+          git push
