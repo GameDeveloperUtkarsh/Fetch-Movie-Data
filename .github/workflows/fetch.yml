@@ -1,35 +1,40 @@
-name: Fetch Movie URL
+name: Fetch Link
 
 on:
   workflow_dispatch:
     inputs:
       code:
+        description: "Code input"
         required: true
-        type: string
 
 jobs:
-  fetch:
+  process:
     runs-on: ubuntu-latest
-    
     steps:
-      - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
+    - uses: actions/checkout@v4
+    
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.11"
 
-      - name: Install dependencies
-        run: |
-          pip install playwright beautifulsoup4
-          playwright install --with-deps chromium
+    - name: Install dependencies
+      run: pip install requests-html
 
-      - name: Run fetch script
-        run: |
-          python fetch_movie.py "${{ github.event.inputs.code }}" > result.txt
+    - name: Set status running true
+      run: |
+        echo '{"running": true, "url": ""}' > run_status.json
 
-      - name: Upload result
-        uses: actions/upload-artifact@v4
-        with:
-          name: movie-url
-          path: result.txt
+    - name: Execute Python
+      env:
+        CODE: ${{ github.event.inputs.code }}
+      run: python fetch.py
+
+    - name: Commit updated status
+      run: |
+        git config user.name "github-actions"
+        git config user.email "github-actions@github.com"
+        git add run_status.json
+        git commit -m "Update status" || echo "No changes"
+        git push
