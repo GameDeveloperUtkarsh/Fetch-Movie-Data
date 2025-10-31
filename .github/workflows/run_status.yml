@@ -1,4 +1,4 @@
-name: Update run_status.json
+name: run_status.yml
 
 on:
   workflow_dispatch:
