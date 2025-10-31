@@ -1,0 +1,35 @@
+name: Fetch Movie URL
+
+on:
+  workflow_dispatch:
+    inputs:
+      code:
+        required: true
+        type: string
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install playwright beautifulsoup4
+          playwright install --with-deps chromium
+
+      - name: Run fetch script
+        run: |
+          python fetch_movie.py "${{ github.event.inputs.code }}" > result.txt
+
+      - name: Upload result
+        uses: actions/upload-artifact@v4
+        with:
+          name: movie-url
+          path: result.txt
