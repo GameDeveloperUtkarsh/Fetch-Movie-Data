@@ -1,32 +1,34 @@
-import sys
+import os
+import json
 import time
-from urllib.parse import quote
-from playwright.sync_api import sync_playwright
-from bs4 import BeautifulSoup
 
-def fetch_movie_url(code):
-    target_url = f"https://home-player.netlify.app/fetcher.html?code={quote(code)}"
+def fetch_link(code: str) -> str:
+    """
+    🚧 Replace this with your actual scraping / HTTP logic
+    Right now: Just return a dummy link using code part before '|'
+    """
+    video_id = code.split("|")[0]
+    return f"https://example.com/video/{video_id}.mkv"
 
-    with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True)
-        page = browser.new_page()
-        page.goto(target_url)
+def update_status(url: str):
+    status = {
+        "running": False,
+        "url": url
+    }
+    with open("run_status.json", "w") as f:
+        json.dump(status, f)
 
-        time.sleep(10)  # wait for JS redirect
+def main():
+    code = os.getenv("CODE", "")
+    if not code:
+        raise Exception("CODE input missing!")
 
-        html = page.content()
-        browser.close()
+    print("Processing Code:", code)
+    time.sleep(3)  # Simulating work
 
-    soup = BeautifulSoup(html, "html.parser")
-    links = [a.get("href") for a in soup.find_all("a") if a.get("href")]
-
-    if len(links) > 2:
-        return f"player.html?movieUrl={quote(links[2])}"
-    return "ERROR: Less than 3 links found"
+    final_link = fetch_link(code)
+    update_status(final_link)
+    print("✅ Link generated:", final_link)
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print("Missing code")
-        sys.exit(1)
-
-    print(fetch_movie_url(sys.argv[1]))
+    main()
